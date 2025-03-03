@@ -17,7 +17,7 @@ import "quill/dist/quill.snow.css";
 const App = () => {
   const isEducatorRoute = useMatch("/educator/*");
   return (
-    <div className="text-default min-h-screen bg-white max-w-[1440px] mx-auto ">
+    <div className="text-default min-h-screen bg-white min-w-[280px] max-w-[1440px] mx-auto ">
       {!isEducatorRoute && <Navbar />}
 
       <Routes>
