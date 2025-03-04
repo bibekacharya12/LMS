@@ -89,6 +89,7 @@ export const stripeWebhooks = async (request, response) => {
         await userData.save();
 
         purchaseData.status = "completed";
+
         await purchaseData.save();
 
         break;
@@ -101,9 +102,10 @@ export const stripeWebhooks = async (request, response) => {
           payment_intent: paymentIntentId,
         });
         const { purchaseId } = session.data[0].metadata;
+
         const purchaseData = await Purchase.findById(purchaseId);
         purchaseData.status = "failed";
-        purchaseData.save();
+        await purchaseData.save();
 
         break;
       }
