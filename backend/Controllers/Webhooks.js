@@ -55,6 +55,7 @@ export const clerkWebhooks = async (req, res) => {
 // stripe instance initialize
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+/*
 // STRIPE WEBHOOKS TO MANAGE PURCHASE SUCCEEDED OR FAILED
 export const stripeWebhooks = async (request, response) => {
   const sig = request.headers["stripe-signature"];
@@ -67,7 +68,7 @@ export const stripeWebhooks = async (request, response) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (error) {
-    response.status(400).send(`Webhook Error ${err.message}`);
+    return response.status(400).send(`Webhook Error ${error.message}`);
   }
 
   // Handle the event
@@ -112,6 +113,86 @@ export const stripeWebhooks = async (request, response) => {
       break;
     }
     // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a response to acknowledge receipt of the event
+  response.json({ received: true });
+};
+*/
+
+export const stripeWebhooks = async (request, response) => {
+  const sig = request.headers["stripe-signature"];
+
+  let event;
+  try {
+    event = Stripe.webhooks.constructEvent(
+      request.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (error) {
+    return response.status(400).send(`Webhook Error ${error.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case "payment_intent.succeeded": {
+      const paymentIntent = event.data.object;
+      const purchaseId = paymentIntent.metadata.purchaseId; // ✅ No need to fetch session
+
+      if (!purchaseId) {
+        return response
+          .status(400)
+          .json({ error: "Missing purchaseId in metadata" });
+      }
+
+      const purchaseData = await Purchase.findById(purchaseId);
+      if (!purchaseData) {
+        return response.status(404).json({ error: "Purchase not found." });
+      }
+
+      const userData = await User.findById(purchaseData.userId);
+      const courseData = await Course.findById(
+        purchaseData.courseId.toString()
+      );
+
+      if (!userData || !courseData) {
+        return response
+          .status(404)
+          .json({ error: "User or course not found." });
+      }
+
+      courseData.enrolledStudents.push(userData);
+      await courseData.save();
+
+      userData.enrolledCourses.push(courseData._id);
+      await userData.save();
+
+      purchaseData.status = "completed";
+      await purchaseData.save();
+
+      break;
+    }
+    case "payment_intent.payment_failed": {
+      const paymentIntent = event.data.object;
+      const purchaseId = paymentIntent.metadata.purchaseId; // ✅ Direct access
+
+      if (!purchaseId) {
+        return response
+          .status(400)
+          .json({ error: "Missing purchaseId in metadata" });
+      }
+
+      const purchaseData = await Purchase.findById(purchaseId);
+      if (purchaseData) {
+        purchaseData.status = "failed";
+        await purchaseData.save();
+      }
+
+      break;
+    }
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
