@@ -57,6 +57,7 @@ const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // STRIPE WEBHOOKS TO MANAGE PURCHASE SUCCEEDED OR FAILED
 export const stripeWebhooks = async (request, response) => {
+  console.log("Stripe Webhooks registered");
   const sig = request.headers["stripe-signature"];
 
   let event;

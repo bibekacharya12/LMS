@@ -13,6 +13,12 @@
     {
       "src": "/(.*)",
       "dest": "server.js"
+    },
+    {
+      "src": "/stripe",
+      "dest": "/api/stripe",
+      "methods": ["POST"],
+      "headers": { "content-type": "application/json" }
     }
   ]
 }
