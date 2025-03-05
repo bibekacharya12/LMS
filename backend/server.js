@@ -22,8 +22,7 @@ await connectCloudinary();
 
 // middlewares
 app.use(cors());
-app.use(express.json());
-
+// app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(clerkMiddleware());
 
@@ -32,9 +31,9 @@ app.get("/", (req, res) => {
 });
 
 app.post("/clerk", clerkWebhooks);
-app.use("/api/v1/educator", educatorRouter);
-app.use("/api/v1/course", courseRouter);
-app.use("/api/v1/user", userRouter);
+app.use("/api/v1/educator", express.json(), educatorRouter);
+app.use("/api/v1/course", express.json(), courseRouter);
+app.use("/api/v1/user", express.json(), userRouter);
 app.post(
   "/stripe",
   express.raw({ type: "application/json" }),
