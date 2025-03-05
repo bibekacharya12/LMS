@@ -30,18 +30,11 @@ app.get("/", (req, res) => {
   res.send("<h1>Api Working</h1>");
 });
 
-app.post("/clerk", clerkWebhooks);
+app.post("/clerk", express.json(), clerkWebhooks);
 app.use("/api/v1/educator", express.json(), educatorRouter);
 app.use("/api/v1/course", express.json(), courseRouter);
 app.use("/api/v1/user", express.json(), userRouter);
-app.post(
-  "/stripe",
-  express.raw({ type: "application/json" }),
-  (req, res) => {
-    console.log("this is /stripe route");
-  },
-  stripeWebhooks
-);
+app.post("/stripe", express.raw({ type: "application/json" }), stripeWebhooks);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

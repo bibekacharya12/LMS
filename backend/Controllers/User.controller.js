@@ -215,10 +215,8 @@ export const purchaseCourse = async (req, res) => {
       cancel_url: `${origin}/`,
       line_items: line_items,
       mode: "payment",
-      payment_intent_data: {
-        metadata: {
-          purchaseId: newPurchase._id.toString(),
-        },
+      metadata: {
+        purchaseId: newPurchase._id.toString(),
       },
     });
 
