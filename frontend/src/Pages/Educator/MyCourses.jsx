@@ -1,18 +1,35 @@
+import axios from "axios";
 import { useContext, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import Loading from "../../Components/Student/Loading";
 import { AppContext } from "../../Context/AppContext";
 
 const MyCourses = () => {
-  const { currency, allCourses } = useContext(AppContext);
+  const { currency, backendUrl, getToken, isEducator } = useContext(AppContext);
   const [courses, setCourses] = useState(null);
 
   const fetchEducatorCourses = async () => {
-    setCourses(allCourses);
+    try {
+      const token = await getToken();
+      const { data } = await axios.get(
+        `${backendUrl}/api/v1/educator/courses`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      data.success && setCourses(data.courses);
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
-    fetchEducatorCourses();
-  }, [allCourses]);
+    if (isEducator) {
+      fetchEducatorCourses();
+    }
+  }, [isEducator]);
 
   return courses ? (
     <div className="h-screen flex flex-col items-start justify-between  md:p-8 md:pb-0 p-4 pt-8 pb-0">
@@ -22,12 +39,16 @@ const MyCourses = () => {
           <table className="md:table-auto table-fixed w-full overflow-hidden">
             <thead className="text-gray-900 border-b border-gray-500/20 text-sm text-left">
               <tr>
-                <th className="px-4 py-3 font-semibold truncate">
+                <th className="pr-4 pl-0 py-3 font-semibold truncate">
                   All Courses
                 </th>
-                <th className="px-4 py-3 font-semibold truncate">Earnings</th>
-                <th className="px-4 py-3 font-semibold truncate">Students</th>
-                <th className="px-4 py-3 font-semibold truncate">
+                <th className="pr-4 pl-0 py-3 font-semibold truncate">
+                  Earnings
+                </th>
+                <th className="pr-4 pl-0 py-3 font-semibold truncate">
+                  Students
+                </th>
+                <th className="pr-4 pl-0 py-3 font-semibold truncate">
                   Published On
                 </th>
               </tr>
